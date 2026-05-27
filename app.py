@@ -15,7 +15,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB
 
-# ─── NOVAS CREDENCIAIS PERSONALIZADAS E SEGURAS ──────────────────────────────
+# ─── CREDENCIAIS PERSONALIZADAS E SEGURAS ───────────────────────────────────
 ADMIN_EMAIL = 'socrates@provoca.com'
 ADMIN_PASSWORD = 'PensoLogoExisto#99'
 
@@ -294,7 +294,7 @@ def gerenciar_categorias():
         return redirect(url_for('gerenciar_categorias'))
 
     lista_cats = db.execute('SELECT * FROM categorias ORDER BY nome ASC').fetchall()
-    return render_template('admin_categorias.html', categorias=lista_cats)
+    return render_template('admin_categorias.html', categories=lista_cats)
 
 
 @app.route('/admin/categorias/deletar/<int:id>', methods=['POST'])
@@ -310,7 +310,16 @@ def deletar_categoria(id):
     return redirect(url_for('gerenciar_categorias'))
 
 
+# ─── INICIALIZAÇÃO DE PASTAS E BANCO DE DADOS (Executa tanto localmente quanto no Render) ───
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+init_db()
+
+# ─── CONFIGURAÇÃO DE PORTA COMPATÍVEL COM RENDER E LOCAL ───────────────────
 if __name__ == '__main__':
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    init_db()
+    # Se você rodar direto pelo PyCharm, ele usa o modo Debug local na porta 5000
     app.run(debug=True)
+else:
+    # Quando o Render rodar o Gunicorn, ele vai ignorar o __main__ e ler a porta por aqui
+    port = int(os.environ.get("PORT", 5000))
+    # Vinculamos o servidor do Render à porta correta
+    app.config['SERVER_NAME'] = None
