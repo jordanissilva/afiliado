@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar' if produto else 'Novo' }} Produto — AfiliaPro{% endblock %}
+
+{% block body %}
+
+<nav class="navbar admin-navbar sticky-top">
+  <div class="container-fluid px-4">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/admin">
+      <span class="brand-icon small"><i class="bi bi-lightning-charge-fill"></i></span>
+      <span class="brand-text">AfiliaPro <span class="admin-badge-nav">Admin</span></span>
+    </a>
+    <div class="d-flex align-items-center gap-3">
+      <a href="/admin" class="btn btn-sm btn-outline-light opacity-75">
+        <i class="bi bi-arrow-left me-1"></i>Voltar
+      </a>
+      <a href="/logout" class="btn btn-sm btn-danger-soft">
+        <i class="bi bi-box-arrow-right me-1"></i>Sair
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="admin-layout">
+
+  <aside class="admin-sidebar">
+    <div class="sidebar-section">
+      <p class="sidebar-label">Menu</p>
+      <a href="/admin" class="sidebar-link"><i class="bi bi-grid-fill"></i>Produtos</a>
+      <a href="/add" class="sidebar-link {% if not produto %}active{% endif %}"><i class="bi bi-plus-circle-fill"></i>Novo Produto</a>
+      <a href="/" target="_blank" class="sidebar-link"><i class="bi bi-eye-fill"></i>Ver Site</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-header">
+      <div>
+        <h1 class="admin-page-title" id="formPageTitle">{{ 'Editar Produto' if produto else 'Novo Produto' }}</h1>
+        <p class="admin-page-sub" id="formPageSub">{{ 'Atualize as informações do produto' if produto else 'Preencha os dados do novo produto' }}</p>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <form method="POST" enctype="multipart/form-data" novalidate>
+
+        <div class="row g-4">
+
+          <div class="col-12 col-md-6">
+            <div class="form-group-custom">
+              <label class="form-label-custom">Categoria</label>
+              <select name="categoria" id="selectCategoria" class="form-select form-control-custom">
+                <option value="">Selecione...</option>
+                {% for cat in categorias %}
+                <option value="{{ cat }}" {% if produto and produto.categoria == cat %}selected{% endif %}>
+                  {{ cat }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <!-- Caixa do Switch Atualizada com cores escuras para contraste perfeito em telas claras -->
+          <div class="col-12 col-md-6 d-flex align-items-center">
+            <div class="form-check form-switch mt-md-4 custom-switch-wrapper">
+              <input class="form-check-input custom-switch" type="checkbox" name="destaque" id="checkDestaque" value="1"
+                     {% if produto and produto.destaque == 1 %}checked{% endif %}>
+              <label class="form-check-label ms-2 text-dark" for="checkDestaque" style="font-weight: 600; cursor: pointer; color: #2b2b36 !important;">
+                ⭐ Destacar esta recomendação no Carrossel do topo
+              </label>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="form-group-custom">
+              <label class="form-label-custom" id="lblNome">Nome do Produto <span class="required">*</span></label>
+              <input type="text" name="nome" id="inputNome" class="form-control form-control-custom"
+                     placeholder="Ex: Fone Bluetooth Premium" required
+                     value="{{ produto.nome if produto else '' }}"/>
+            </div>
+          </div>
+
+          <div class="col-12" id="groupDescricao">
+            <div class="form-group-custom">
+              <label class="form-label-custom">Descrição Curta</label>
+              <textarea name="descricao" class="form-control form-control-custom" rows="3"
+                        placeholder="Descreva o produto em poucas palavras...">{{ produto.descricao if produto else '' }}</textarea>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="form-group-custom">
+              <label class="form-label-custom" id="lblLink">Link de Afiliado <span class="required">*</span></label>
+              <div class="input-icon-wrapper">
+                <i class="bi bi-link-45deg input-icon"></i>
+                <input type="url" name="link" class="form-control form-control-custom has-icon"
+                       placeholder="https://exemplo.com/produto?ref=seuafiliado" required
+                       value="{{ produto.link if produto else '' }}"/>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="form-group-custom">
+              <label class="form-label-custom" id="lblImagem">Imagem do Produto</label>
+
+              {% if produto and produto.imagem %}
+              <div class="current-image mb-3">
+                {% if produto.imagem.startswith('http') %}
+                  <img src="{{ produto.imagem }}" alt="Imagem atual" class="current-img-preview"/>
+                {% else %}
+                  <img src="{{ url_for('static', filename=produto.imagem) }}" alt="Imagem atual" class="current-img-preview"/>
+                {% endif %}
+                <div class="ms-3">
+                  <p class="mb-1 text-muted small">Imagem atual</p>
+                  <p class="mb-0 text-muted small opacity-75">Envie uma nova para substituir</p>
+                </div>
+              </div>
+              {% endif %}
+
+              <div class="upload-area" id="uploadArea">
+                <input type="file" name="imagem" id="imgInput" class="upload-input"
+                       accept=".png,.jpg,.jpeg,.gif,.webp"/>
+                <div class="upload-content" id="uploadContent">
+                  <i class="bi bi-cloud-arrow-up-fill upload-icon"></i>
+                  <p class="upload-text" id="txtUpload">Arraste ou <span class="upload-link">clique para selecionar</span></p>
+                  <p class="upload-hint">PNG, JPG, JPEG, GIF, WEBP — máx. 5MB</p>
+                </div>
+                <div class="upload-preview d-none" id="uploadPreview">
+                  <img id="previewImg" src="" alt="Preview" class="preview-img"/>
+                  <p class="preview-name mt-2 mb-0" id="previewName"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="form-actions mt-4">
+          <a href="/admin" class="btn btn-cancel">
+            <i class="bi bi-x-lg me-2"></i>Cancelar
+          </a>
+          <button type="submit" class="btn btn-save" id="btnSubmit">
+            <i class="bi bi-check-lg me-2"></i>{{ 'Salvar Alterações' if produto else 'Adicionar Produto' }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </main>
+</div>
+
+<!-- Estilos corrigidos para alto contraste e nitidez -->
+<style>
+  .custom-switch-wrapper {
+    background: #fff8f0; /* Fundo âmbar bem suave */
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 1px dashed #ff9900; /* Borda laranja pontilhada */
+    width: 100%;
+  }
+  .custom-switch {
+    background-color: #dfdfea;
+    border-color: rgba(0,0,0,0.2);
+    cursor: pointer;
+  }
+  .custom-switch:checked {
+    background-color: #ff9900 !important;
+    border-color: #ff9900 !important;
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const input = document.getElementById('imgInput');
+  const area = document.getElementById('uploadArea');
+  const content = document.getElementById('uploadContent');
+  const preview = document.getElementById('uploadPreview');
+  const previewImg = document.getElementById('previewImg');
+  const previewName = document.getElementById('previewName');
+
+  const checkDestaque = document.getElementById('checkDestaque');
+  const groupDescricao = document.getElementById('groupDescricao');
+  const formPageTitle = document.getElementById('formPageTitle');
+  const formPageSub = document.getElementById('formPageSub');
+  const lblNome = document.getElementById('lblNome');
+  const inputNome = document.getElementById('inputNome');
+  const lblLink = document.getElementById('lblLink');
+  const lblImagem = document.getElementById('lblImagem');
+  const txtUpload = document.getElementById('txtUpload');
+  const btnSubmit = document.getElementById('btnSubmit');
+
+  const estaEditando = {{ 'true' if produto else 'false' }};
+
+  function adaptarFormulario() {
+    if (checkDestaque.checked) {
+      groupDescricao.style.display = 'none';
+      formPageTitle.textContent = estaEditando ? 'Editar Indicação Especial' : 'Nova Indicação Especial';
+      formPageSub.textContent = 'Este item será exibido exclusivamente no carrossel de recomendações do topo';
+      lblNome.innerHTML = 'Título em Destaque <span class="required">*</span>';
+      inputNome.placeholder = 'Ex: Nome do livro preferido ou oferta master...';
+      lblLink.innerHTML = 'Link de Afiliado Direto <span class="required">*</span>';
+      lblImagem.textContent = 'Imagem do Banner/Capa';
+      txtUpload.innerHTML = 'Arraste ou <span class="upload-link">clique para subir a imagem do topo</span>';
+
+      if (!estaEditando) {
+        btnSubmit.innerHTML = '<i class="bi bi-star-fill me-2"></i>Indicar Item no Topo';
+      }
+    } else {
+      groupDescricao.style.display = 'block';
+      formPageTitle.textContent = estaEditando ? 'Editar Produto' : 'Novo Produto';
+      formPageSub.textContent = estaEditando ? 'Atualize as informações da vitrine' : 'Preencha os dados do novo produto';
+      lblNome.innerHTML = 'Nome do Produto <span class="required">*</span>';
+      inputNome.placeholder = 'Ex: Fone Bluetooth, Mochila, Livro Técnico...';
+      lblLink.innerHTML = 'Link de Afiliado <span class="required">*</span>';
+      lblImagem.textContent = 'Imagem do Produto';
+      txtUpload.innerHTML = 'Arraste ou <span class="upload-link">clique para selecionar</span>';
+
+      if (!estaEditando) {
+        btnSubmit.innerHTML = '<i class="bi bi-check-lg me-2"></i>Adicionar Produto';
+      }
+    }
+  }
+
+  checkDestaque.addEventListener('change', adaptarFormulario);
+  document.addEventListener('DOMContentLoaded', adaptarFormulario);
+
+  input.addEventListener('change', function() {
+    const file = this.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        previewImg.src = e.target.result;
+        previewName.textContent = file.name;
+        content.classList.add('d-none');
+        preview.classList.remove('d-none');
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('drag-over'); });
+  area.addEventListener('dragleave', () => area.classList.remove('drag-over'));
+  area.addEventListener('drop', e => {
+    e.preventDefault();
+    area.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) { input.files = e.dataTransfer.files; input.dispatchEvent(new Event('change')); }
+  });
+</script>
+{% endblock %}

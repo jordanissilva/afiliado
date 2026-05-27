@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Login — AfiliaPro Admin{% endblock %}
+
+{% block body %}
+<div class="login-page">
+  <div class="login-bg">
+    <div class="login-shape s1"></div>
+    <div class="login-shape s2"></div>
+  </div>
+
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="brand-icon large"><i class="bi bi-lightning-charge-fill"></i></span>
+      <h1 class="login-title">AfiliaPro</h1>
+      <p class="login-subtitle">Painel Administrativo</p>
+    </div>
+
+    {# Otimização: Deixar o action vazio faz o formulário enviar os dados de volta para a mesma URL atual de forma mais segura e flexível #}
+    <form method="POST" class="login-form" novalidate>
+      <div class="form-group-custom mb-3">
+        <label class="form-label-custom">E-mail</label>
+        <div class="input-icon-wrapper">
+          <i class="bi bi-envelope-fill input-icon"></i>
+          <input type="email" name="email" class="form-control form-control-custom"
+                 placeholder="admin@email.com" required autocomplete="email"/>
+        </div>
+      </div>
+
+      <div class="form-group-custom mb-4">
+        <label class="form-label-custom">Senha</label>
+        <div class="input-icon-wrapper">
+          <i class="bi bi-lock-fill input-icon"></i>
+          <input type="password" name="senha" class="form-control form-control-custom"
+                 placeholder="••••••" required autocomplete="current-password"/>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-login w-100">
+        <i class="bi bi-shield-lock-fill me-2"></i>Entrar no Painel
+      </button>
+    </form>
+
+    <a href="/" class="login-back"><i class="bi bi-arrow-left me-1"></i>Voltar para o site</a>
+  </div>
+</div>
+{% endblock %}

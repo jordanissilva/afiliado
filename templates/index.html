@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block title %}Provoca — Indicações & Ofertas{% endblock %}
+
+{% block body %}
+
+<nav class="navbar navbar-expand-lg sticky-top navbar-custom">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+      <span class="brand-icon"><i class="bi bi-chat-quote-fill"></i></span>
+      <span class="brand-text">Provoca</span>
+    </a>
+    <div class="ms-auto d-flex align-items-center gap-3">
+      <span class="badge-live">🔴 Ao vivo</span>
+      </div>
+  </div>
+</nav>
+
+<section class="hero-section">
+  <div class="container">
+    <div class="row align-items-center g-4">
+
+      <div class="col-12 col-lg-7 text-start position-relative">
+        <div class="hero-badge mb-3">⚡ Ofertas selecionadas para você</div>
+        <h1 class="hero-title text-start">As Melhores Ofertas<br><span class="hero-highlight">Reunidas Aqui</span></h1>
+        <p class="hero-subtitle text-start">Produtos curados com os melhores preços do mercado.<br>Clique e aproveite antes que acabe!</p>
+
+        <form method="get" action="/" class="hero-search mt-4">
+          <div class="search-wrapper">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" name="busca" class="form-control search-input" placeholder="Buscar produtos..." value="{{ busca if busca else '' }}"/>
+            {% if categoria_atual %}<input type="hidden" name="categoria" value="{{ categoria_atual }}"/>{% endif %}
+            <button type="submit" class="btn btn-search">Buscar</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="col-12 col-lg-5 text-center">
+        {% if livros_indicados %}
+        <div class="container-carrossel-livro">
+          <div class="label-carrossel">📚 Minhas Indicações</div>
+
+          <div class="slider-livro-wrapper">
+              {% for livro in livros_indicados %}
+                <div class="slide-livro-item {% if loop.first %}active{% endif %}">
+                  <a href="{{ livro.link }}" target="_blank" rel="noopener noreferrer">
+                    {% if livro.imagem and livro.imagem.startswith('http') %}
+                      <img src="{{ livro.imagem }}" alt="Livro Indicado" class="imagem-capa-unica">
+                    {% else %}
+                      <img src="{{ url_for('static', filename=livro.imagem) }}" alt="Livro Indicado" class="imagem-capa-unica">
+                    {% endif %}
+                  </a>
+                </div>
+              {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="filter-section">
+  <div class="container">
+
+    <div class="d-md-none mb-2">
+      <button class="btn btn-search w-100 d-flex align-items-center justify-content-center gap-2"
+              type="button" data-bs-toggle="collapse" data-bs-target="#categoriesCollapse" aria-expanded="false">
+        <i class="bi bi-funnel-fill"></i> Filtrar por Categorias
+      </button>
+    </div>
+
+    <div class="collapse d-md-block" id="categoriesCollapse">
+      <div class="filter-scroll">
+        <a href="{{ url_for('index', busca=busca) }}"
+           class="filter-pill {% if not categoria_atual %}active{% endif %}">
+          <i class="bi bi-grid-3x3-gap-fill me-1"></i>Todos
+        </a>
+        {% for cat in categorias %}
+        <a href="{{ url_for('index', categoria=cat, busca=busca) }}"
+           class="filter-pill {% if categoria_atual == cat %}active{% endif %}">
+          {% if cat == 'Eletrônicos' %}<i class="bi bi-cpu-fill me-1"></i>
+          {% elif cat == 'Fitness' %}<i class="bi bi-heart-pulse-fill me-1"></i>
+          {% elif cat == 'Acessórios' %}<i class="bi bi-bag-heart-fill me-1"></i>
+          {% elif cat == 'Casa' %}<i class="bi bi-house-heart-fill me-1"></i>
+          {% elif cat == 'Mochilas' %}<i class="bi bi-backpack-fill me-1"></i>
+          {% elif cat == 'Tecnologia' %}<i class="bi bi-laptop-fill me-1"></i>
+          {% else %}<i class="bi bi-tag-fill me-1"></i>{% endif %}
+          {{ cat }}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="products-section">
+  <div class="container">
+
+    <div class="section-header mb-4">
+      <h2 class="section-title">
+        {% if categoria_atual %}{{ categoria_atual }}
+        {% elif busca %}Resultados para "{{ busca }}"
+        {% else %}Todas as Ofertas{% endif %}
+      </h2>
+      <span class="section-count">{{ produtos|length }} produto{% if produtos|length != 1 %}s{% endif %}</span>
+    </div>
+
+    {% if produtos %}
+    <div class="row g-4">
+      {% for p in produtos %}
+      <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+        <div class="product-card">
+          <div class="product-img-wrapper">
+            {% if p.imagem and p.imagem.startswith('http') %}
+              <img src="{{ p.imagem }}" alt="{{ p.nome }}" class="product-img"/>
+            {% elif p.imagem %}
+              <img src="{{ url_for('static', filename=p.imagem) }}" alt="{{ p.nome }}" class="product-img"/>
+            {% else %}
+              <div class="product-img-placeholder">
+                <i class="bi bi-image"></i>
+              </div>
+            {% endif %}
+
+            {% if p.categoria %}
+            <span class="product-category-badge">{{ p.categoria }}</span>
+            {% endif %}
+          </div>
+          <div class="product-body">
+            <h3 class="product-name">{{ p.nome }}</h3>
+            {% if p.descricao %}
+            <p class="product-desc">{{ p.descricao }}</p>
+            {% endif %}
+            <a href="{{ p.link }}" target="_blank" rel="noopener noreferrer" class="btn btn-oferta w-100">
+              <i class="bi bi-bag-check-fill me-2"></i>Ver Oferta
+              <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+            <p class="affiliate-notice">*Link de afiliado</p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon"><i class="bi bi-search"></i></div>
+      <h3>Nenhum produto encontrado</h3>
+      <p>Tente outra categoria ou termo de busca.</p>
+      <a href="/" class="btn btn-outline-primary mt-2">Ver todos os produtos</a>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container text-center">
+    <p class="footer-brand"><i class="bi bi-chat-quote-fill me-2"></i>Provoca</p>
+    <p class="footer-note">Os links desta página são links de afiliados. Ao comprar, você apoia este canal.</p>
+  </div>
+</footer>
+
+<style>
+  .text-start {
+    text-align: left !important;
+  }
+  .container-carrossel-livro {
+    max-width: 240px;
+    margin: 0 auto;
+    position: relative;
+    padding: 10px;
+  }
+  .label-carrossel {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #ff9900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .slider-livro-wrapper {
+    position: relative;
+    width: 100%;
+    height: 310px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .slide-livro-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .slide-livro-item.active {
+    opacity: 1;
+    visibility: visible;
+    position: relative;
+  }
+  .slide-livro-item a {
+    display: block;
+    outline: none;
+  }
+  .imagem-capa-unica {
+    max-height: 290px;
+    width: auto;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease;
+    object-fit: contain;
+  }
+  .imagem-capa-unica:hover {
+    transform: scale(1.03);
+    box-shadow: 0 12px 30px rgba(255, 153, 0, 0.25);
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const slides = document.querySelectorAll('.slide-livro-item');
+    if (slides.length <= 1) return;
+
+    let slideAtual = 0;
+
+    function proximoSlide() {
+      slides[slideAtual].classList.remove('active');
+      slideAtual = (slideAtual + 1) % slides.length;
+      slides[slideAtual].classList.add('active');
+    }
+
+    setInterval(proximoSlide, 5000);
+  });
+</script>
+
+{% endblock %}
