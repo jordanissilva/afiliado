@@ -1,5 +1,5 @@
 import os
-import psycopg2
+import pg8000
 from flask import Flask, render_template, request, redirect, url_for, session, flash, g
 from werkzeug.utils import secure_filename
 from functools import wraps
@@ -22,14 +22,33 @@ ADMIN_EMAIL = 'admin@email.com'
 ADMIN_PASSWORD = '123456'
 
 
-# ─── Conexão Inteligente com o Banco de Dados ───────────────────────────────
+# ─── Conexão Inteligente com o Banco de Dados (pg8000) ──────────────────────
 
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
         database_url = os.environ.get('DATABASE_URL')
         if database_url:
-            db = g._database = psycopg2.connect(database_url)
+            # O Render manda como 'postgres://...', mas o pg8000 prefere destrinchar a URL
+            # Vamos quebrar a URL para conectar de forma ultra segura
+            try:
+                # Remove o prefixo
+                url = database_url.replace("postgres://", "").replace("postgresql://", "")
+                user_pass, host_port_db = url.split("@")
+                user, password = user_pass.split(":")
+                host_port, dbname = host_port_db.split("/")
+                host, port = host_port.split(":")
+
+                db = g._database = pg8000.connect(
+                    user=user,
+                    password=password,
+                    host=host,
+                    port=int(port),
+                    database=dbname
+                )
+            except Exception:
+                # Fallback caso dê algum erro na divisão da URL string
+                db = g._database = pg8000.connect(dsn=database_url)
         else:
             import sqlite3
             sqlite_db = os.path.join(BASE_DIR, 'database.db')
@@ -48,7 +67,7 @@ def close_connection(exception):
 def init_db():
     with app.app_context():
         db = get_db()
-        if hasattr(db, 'cursor') and not hasattr(db, 'row_factory'):
+        if hasattr(db, 'cursor') and not hasattr(db, 'row_factory'):  # PostgreSQL
             cur = db.cursor()
             cur.execute('''
                         CREATE TABLE IF NOT EXISTS produtos
@@ -99,7 +118,7 @@ def init_db():
                     cur.execute('INSERT INTO categorias (nome) VALUES (%s)', (cat,))
             db.commit()
             cur.close()
-        else:
+        else:  # SQLite
             db.execute('''
                        CREATE TABLE IF NOT EXISTS produtos
                        (
@@ -380,7 +399,7 @@ def edit_produto(id):
             )
             db.commit()
 
-        flash('Produto updated com sucesso!', 'success')
+        flash('Produto atualizado com sucesso!', 'success')
         return redirect(url_for('admin'))
 
     return render_template('form_produto.html', categories=carregar_categorias(), produto=produto)
@@ -463,8 +482,6 @@ def deletar_categoria(id):
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 init_db()
 
-# ─── INICIALIZAÇÃO CORRIGIDA COM PORTA DINÂMICA DO RENDER ───────────────────
 if __name__ == '__main__':
-    # No PC roda na 5000, no Render ele lê a porta correta automaticamente
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
