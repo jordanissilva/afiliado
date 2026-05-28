@@ -310,16 +310,10 @@ def deletar_categoria(id):
     return redirect(url_for('gerenciar_categorias'))
 
 
-# ─── INICIALIZAÇÃO DE PASTAS E BANCO DE DADOS (Executa tanto localmente quanto no Render) ───
+# ─── INICIALIZAÇÃO DE PASTAS E BANCO DE DADOS ──────────────────────────────
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 init_db()
 
-# ─── CONFIGURAÇÃO DE PORTA COMPATÍVEL COM RENDER E LOCAL ───────────────────
+# ─── EXECUÇÃO LOCAL ─────────────────────────────────────────────────────────
 if __name__ == '__main__':
-    # Se você rodar direto pelo PyCharm, ele usa o modo Debug local na porta 5000
     app.run(debug=True)
-else:
-    # Quando o Render rodar o Gunicorn, ele vai ignorar o __main__ e ler a porta por aqui
-    port = int(os.environ.get("PORT", 5000))
-    # Vinculamos o servidor do Render à porta correta
-    app.config['SERVER_NAME'] = None
