@@ -29,10 +29,8 @@ def get_db():
     if db is None:
         database_url = os.environ.get('DATABASE_URL')
         if database_url:
-            # Se estiver na internet (Render), conecta no PostgreSQL
             db = g._database = psycopg2.connect(database_url)
         else:
-            # Se estiver no computador, conecta no SQLite local de forma adaptada
             import sqlite3
             sqlite_db = os.path.join(BASE_DIR, 'database.db')
             db = g._database = sqlite3.connect(sqlite_db)
@@ -50,7 +48,6 @@ def close_connection(exception):
 def init_db():
     with app.app_context():
         db = get_db()
-        # Se for PostgreSQL (Render)
         if hasattr(db, 'cursor') and not hasattr(db, 'row_factory'):
             cur = db.cursor()
             cur.execute('''
@@ -103,7 +100,6 @@ def init_db():
             db.commit()
             cur.close()
         else:
-            # Se for SQLite (Computador)
             db.execute('''
                        CREATE TABLE IF NOT EXISTS produtos
                        (
@@ -384,7 +380,7 @@ def edit_produto(id):
             )
             db.commit()
 
-        flash('Produto atualizado com sucesso!', 'success')
+        flash('Produto updated com sucesso!', 'success')
         return redirect(url_for('admin'))
 
     return render_template('form_produto.html', categories=carregar_categorias(), produto=produto)
@@ -467,8 +463,8 @@ def deletar_categoria(id):
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 init_db()
 
+# ─── INICIALIZAÇÃO CORRIGIDA COM PORTA DINÂMICA DO RENDER ───────────────────
 if __name__ == '__main__':
-    app.run(debug=True)
-else:
+    # No PC roda na 5000, no Render ele lê a porta correta automaticamente
     port = int(os.environ.get("PORT", 5000))
-    app.config['SERVER_NAME'] = None
+    app.run(host='0.0.0.0', port=port, debug=True)
