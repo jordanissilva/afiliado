@@ -199,7 +199,6 @@ def index():
             'SELECT id, nome, descricao, categoria, imagem, link, destaque FROM produtos WHERE destaque = 1 ORDER BY id DESC')
         livros_cru = cur.fetchall()
 
-        # Converte lista em dicionários para o HTML ler igual nos dois bancos
         livros_indicados = []
         for r in livros_cru:
             livros_indicados.append(
